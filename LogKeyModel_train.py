@@ -1,11 +1,13 @@
+import argparse
+import os
 import time
+
+import psutil
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 from torch.utils.tensorboard import SummaryWriter
-from torch.utils.data import TensorDataset, DataLoader
-import argparse
-import os
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -62,6 +64,7 @@ if __name__ == '__main__':
     hidden_size = args.hidden_size
     window_size = args.window_size
 
+    p = psutil.Process()
     model = Model(input_size, hidden_size, num_layers, num_classes).to(device)
     seq_dataset = generate('hdfs_train')
     dataloader = DataLoader(seq_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
@@ -90,6 +93,7 @@ if __name__ == '__main__':
             writer.add_graph(model, seq)
         print('Epoch [{}/{}], train_loss: {:.4f}'.format(epoch + 1, num_epochs, train_loss / total_step))
         writer.add_scalar('train_loss', train_loss / total_step, epoch + 1)
+        writer.add_scalar('memory_percent', p.memory_percent(), epoch + 1)
     elapsed_time = time.time() - start_time
     print('elapsed_time: {:.3f}s'.format(elapsed_time))
     if not os.path.isdir(model_dir):

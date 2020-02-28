@@ -69,6 +69,7 @@ if __name__ == '__main__':
     seq_dataset = generate('hdfs_train')
     dataloader = DataLoader(seq_dataset, batch_size=batch_size, shuffle=True, pin_memory=True)
     writer = SummaryWriter(log_dir='log/' + log)
+    writer.add_graph(model)
 
     # Loss and optimizer
     criterion = nn.CrossEntropyLoss()
@@ -90,7 +91,6 @@ if __name__ == '__main__':
             loss.backward()
             train_loss += loss.item()
             optimizer.step()
-            writer.add_graph(model, seq)
         print('Epoch [{}/{}], train_loss: {:.4f}'.format(epoch + 1, num_epochs, train_loss / total_step))
         writer.add_scalar('train_loss', train_loss / total_step, epoch + 1)
         writer.add_scalar('memory_percent', p.memory_percent(), epoch + 1)
